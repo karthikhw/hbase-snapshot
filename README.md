@@ -1,19 +1,22 @@
 # hbase-snapshot
-**Export Phoenix tables using HBase Snapshot**
+## Export Phoenix tables using HBase Snapshot
 
-  HBase snapshot is the best approach for large export and import data into another cluster but has to depend the use case whether approach is feasible or not.  
+  HBase snapshot is the best approach for large import and export data to another cluster but has depend the use case whether feasible or not. 
   
   Snapshot is point-in-time capture, you may not able to export by time series (like a day, week, year data separately) but to achieve this you may need a different approach.
   
   This approach allows you to take a snapshot of a table without too much impact on Region Servers. Snapshot, Clone and restore operations don't involve data copying. Also, Exporting the snapshot to another cluster doesn't have an impact on the Region Servers.
    
-   Note: Ensure, no schema change in a destination table like delete/rename column family, table name, and etc. 
+   _Note: Ensure, no schema change in a destination table like delete/rename of column family, table name, and etc._ 
    
    ### Steps : On Source Cluster
 
 1. Create a table in the source cluster.
 ```
-$   /usr/hdp/2.5.3.0-37/phoenix/bin/sqlline.py localhost:2181:/hbase-unsecure
+$ /usr/hdp/<hdp-version>/phoenix/bin/sqlline.py <ZK host>:2181:/<znode>
+
+Example:
+$ /usr/hdp/2.5.3.0-37/phoenix/bin/sqlline.py localhost:2181:/hbase-unsecure
 ```
 
 ```
@@ -55,7 +58,7 @@ hbase> list_snapshots
 
 6. Copy/export the snapshots to destination cluster.
 
-   The ExportSnapshot tool copies all the data related to a snapshot (hfiles, logs, snapshot metadata) to the destination cluster.  tool executes a Map-Reduce job, similar to distcp, to copy files between the two clusters, and since it works at file-system level the hbase cluster does not have to be online.
+   The ExportSnapshot tool copies all the data related to a snapshot (hfiles, logs, snapshot metadata) to the destination cluster.  tool executes a Map-Reduce job, similar to distcp, to copy files between the two clusters. and it works at file-system level the hbase cluster does not have to be online.
    
 ```
 Example:
@@ -66,7 +69,7 @@ $hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot US_POP_SAMPLE_S
 
 **or**  
 
-You can take a backup to the local file system.
+You can take a backup to the localfilesystem.
 
 a) First, Let's export to the local/source HDFS.
 
@@ -86,6 +89,10 @@ $hdfs dfs -copyToLocal /tmp/US_POP_SAMPLE_SNAPSHOT /var/tmp/
 ### Steps: On Destination Cluster:
 
 7. Create table schema as same as the source cluster.
+
+```
+$ /usr/hdp/<hdp-version>/phoenix/bin/sqlline.py <ZK host>:2181:/<znode>
+```
 
 ```
 CREATE TABLE IF NOT EXISTS US_POP_SAMPLE(
@@ -122,7 +129,7 @@ Example:
 hbase> enable 'US_POP_SAMPLE'
 ```
 
-d) Done, verify the rows which inserted by snapshot.
+d) Done.
 
 ```
 Example:
@@ -130,7 +137,7 @@ hbase>scan 'US_POP_SAMPLE'
 ```
 
 
-Note: Please copy the snapshot into appropriate HDFS location if you load it from LFS.
+_Note: Please copy the snapshot into appropriate HDFS location if you load it from LFS._
 ```
 example :
 $hdfs dfs -copyFromLocal /var/tmp/US_POP_SAMPLE_SNAPSHOT hdfs://<NN hostname>:8020/hbase
