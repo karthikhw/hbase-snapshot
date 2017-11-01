@@ -13,6 +13,8 @@
 
 1. Create a table in the source cluster.
 ```
+su - hbase
+
 $ /usr/hdp/<hdp-version>/phoenix/bin/sqlline.py <ZK host>:2181:/<znode>
 
 Example:
@@ -39,12 +41,18 @@ TX,Houston,2016582
 3. Load data into the table using CsvImport tool.
 
 ```
+su - hdfs
+
 $ java -Dhdp.version=<version> -cp `hbase classpath`:  org.apache.phoenix.mapreduce.CsvBulkLoadTool   --table <US_POP_SAMPLE> --input /var/tmp/us_pop.csv
 ```
 
 4. Create snapshot: You can take a snapshot of a table regardless of whether it is enabled or disabled. The snapshot operation doesn’t involve any data copying.
 
 ```
+#su - hbase
+
+$hbase shell
+
 hbase> snapshot '<tablename>', '<snapshot-name>'
 
 Example:
@@ -63,6 +71,8 @@ hbase> list_snapshots
 ```
 Example:
 To copy a snapshot called US_POP_SAMPLE_SNAPSHOT to an HBase cluster srv2 (hdfs:///srv2:8082/hbase) using 16 mappers:
+
+su - hdfs
 
 $hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot US_POP_SAMPLE_SNAPSHOT -copy-to hdfs://srv2:8082/hbase -mappers 16
 ```
@@ -83,6 +93,8 @@ $hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot us_pop_snapshot
 b)  Now, copy the snapshot files from HDFS to LFS.
 
 ```
+su - hdfs
+
 $hdfs dfs -copyToLocal /tmp/US_POP_SAMPLE_SNAPSHOT /var/tmp/
 ```
 
@@ -91,6 +103,8 @@ $hdfs dfs -copyToLocal /tmp/US_POP_SAMPLE_SNAPSHOT /var/tmp/
 7. Create table schema as same as the source cluster.
 
 ```
+su - hbase
+
 $ /usr/hdp/<hdp-version>/phoenix/bin/sqlline.py <ZK host>:2181:/<znode>
 ```
 
@@ -107,6 +121,10 @@ CREATE TABLE IF NOT EXISTS US_POP_SAMPLE(
  a) Disable table:
  
  ```
+#su - hbase
+
+$hbase shell
+ 
 hbase> disable '<tablename>'
 
 Example:
